@@ -1,0 +1,30 @@
+client1 - AuctionClient.Seller may create a new auction with item offered
+	- AuctionClient.Seller may provide
+		- starting price
+		- description of item
+		- minimum acceptable price (reserve price)
+	- creating an auction will return and auction ID
+	- A seller can create multiple autctions
+	- A seller may close the auction using the same client program, by quoting the auction ID
+	- When seller closes autcion, the program should indicate who the einner is, along with their details, or indicate that the reserver price has not been reached
+
+client2 - enable buyers to bid for auctionsed items,
+	- enable buyers to browse the list of currently active auctions
+		- include current highest bid
+		- reserve price is hidden
+	- allow buyers to bid
+		- requires auction ID, buyer name and email
+	- client should indicate if bid has been accepted or not
+		- explains why bid is rejected if so
+
+auctioning server - deal with requests from the two clients 
+		  - allow simultanous buyers and sellers
+
+
+
+
+
+
+
+
+

@@ -3,7 +3,7 @@ package AuctionServer.DataStructures;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Auction {
-    private static final AtomicInteger idCoutner = new AtomicInteger(0);
+    private static final AtomicInteger idCounter = new AtomicInteger(0);
 
     private final int id;
     private final String item;
@@ -16,7 +16,7 @@ public class Auction {
         || String.valueOf(reservePrice).split("\\.")[1].length() > 2)
             throw new IllegalArgumentException("prices given have more than 2 decimal places");
 
-        this.id = idCoutner.getAndIncrement();
+        this.id = idCounter.getAndIncrement();
         this.item = item;
         this.description = description;
         this.startingPrice = startingPrice;

@@ -29,7 +29,7 @@ public class Buyer extends Client implements Runnable {
     System.out.println("usage: TODO");
 
     while (true) {
-      String input = sc.next();
+      String input = sc.next().toLowerCase().trim();
       switch (input) {
         case "browse":
           browse();

@@ -61,6 +61,6 @@ public class Buyer implements Runnable {
     }
 
     public static void main(String[] args) {
-        new Thread(new Buyer()).start();
+        new Buyer().run();
     }
 }

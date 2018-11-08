@@ -1,28 +1,12 @@
 package AuctionClient;
 
-import AuctionInterfaces.AuctionHouse;
-
-import java.net.MalformedURLException;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Scanner;
 
-public class Buyer implements Runnable {
+public class Buyer extends Client implements Runnable {
 
-  private final AuctionHouse server;
   public Buyer() {
-    // Create the reference to the remote object through the rmiregistry
-    AuctionHouse server = null;
-    try {
-      server = (AuctionHouse) Naming.lookup("rmi://localhost/AuctionHouse");
-    } catch (NotBoundException | MalformedURLException | RemoteException e) {
-      System.out.println("cannot connect to remote server");
-      e.printStackTrace();
-      System.exit(1);
-    }
-
-    this.server = server;
+    super();
   }
 
   private void browse() {

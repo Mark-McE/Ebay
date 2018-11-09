@@ -1,0 +1,1 @@
+@START "buyer" CMD /c "cd out/Ebay && java AuctionClient.Buyer"

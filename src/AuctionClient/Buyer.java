@@ -1,7 +1,9 @@
 package AuctionClient;
 
+import AuctionInterfaces.Auction;
+
 import java.rmi.RemoteException;
-import java.util.Scanner;
+import java.util.List;
 
 public class Buyer extends Client implements Runnable {
 
@@ -11,27 +13,12 @@ public class Buyer extends Client implements Runnable {
     super();
   }
 
-  private void browse() {
-    System.out.println("browsing ...");
-    try {
-      System.out.println(server.getString());
-    } catch (RemoteException e) {
-      System.out.println("unable to call getString() from remote server");
-    }
-  }
-
-  private void bid() {
-    System.out.println("bidding ...");
-  }
-
   @Override
   public void run() {
-    Scanner sc = new Scanner(System.in);
-    sc.useDelimiter("\\R");
-
     System.out.println("usage: " + usage);
 
     while (true) {
+      System.out.print("\nAuction_house_buyer_client>");
       String input = sc.next().toLowerCase().trim();
       switch (input) {
         case "browse":
@@ -40,14 +27,37 @@ public class Buyer extends Client implements Runnable {
         case "bid":
           bid();
           break;
+        case "/?":
+        case "help":
         case "usage":
           System.out.println("usage: " + usage);
           break;
         default:
-          System.out.println("unknown command: " + input);
+          System.out.println("unknown command: \"" + input
+              + "\" for a list of commands, type help");
           break;
       }
     }
+  }
+
+  private void browse() {
+    List<Auction> auctions = null;
+    try {
+      auctions = server.getListings();
+    } catch (RemoteException e) {
+      System.out.println("unable to communicate with Auction house server");
+      e.printStackTrace();
+      return;
+    }
+
+    System.out.println("Auction listings:");
+
+    for (Auction auction : auctions)
+      System.out.println(auction.toReadableString());
+  }
+
+  private void bid() {
+    System.out.println("bidding ...");
   }
 
   public static void main(String[] args) {

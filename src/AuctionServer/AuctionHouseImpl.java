@@ -1,10 +1,12 @@
 package AuctionServer;
 
+import AuctionInterfaces.Auction;
 import AuctionInterfaces.AuctionHouse;
-import AuctionServer.DataStructures.Auction;
+import AuctionServer.DataStructures.AuctionImpl;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class AuctionHouseImpl
@@ -13,12 +15,8 @@ public class AuctionHouseImpl
 
   private List<Auction> auctions = new ArrayList<>();
 
-  public AuctionHouseImpl() throws java.rmi.RemoteException {
+  public AuctionHouseImpl() throws RemoteException {
     super();
-  }
-
-  public String getString() throws java.rmi.RemoteException {
-    return "a string";
   }
 
   @Override
@@ -26,9 +24,14 @@ public class AuctionHouseImpl
       float startingPrice, float reservePrice)
       throws RemoteException {
 
-    Auction auction = new Auction(item, description, startingPrice, reservePrice);
+    Auction auction = new AuctionImpl(item, description, startingPrice, reservePrice);
     auctions.add(auction);
 
     return auction.getId();
+  }
+
+  @Override
+  public List<Auction> getListings() throws RemoteException {
+    return Collections.unmodifiableList(auctions);
   }
 }

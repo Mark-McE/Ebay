@@ -1,8 +1,12 @@
 package AuctionInterfaces;
 
+import java.rmi.RemoteException;
+import java.util.List;
+
 public interface AuctionHouse extends java.rmi.Remote {
-  String getString() throws java.rmi.RemoteException;
 
   int createAuction(String item, String description, float startingPrice, float reservePrice)
-      throws java.rmi.RemoteException;
+      throws RemoteException;
+
+  List<Auction> getListings() throws RemoteException;
 }

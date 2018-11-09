@@ -11,6 +11,7 @@ public class Seller extends Client implements Runnable {
   @Override
   public void run() {
     Scanner sc = new Scanner(System.in);
+    sc.useDelimiter("\\R");
 
     System.out.println("usage: TODO");
 

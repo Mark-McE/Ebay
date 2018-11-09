@@ -4,6 +4,8 @@ import java.util.Scanner;
 
 public class Seller extends Client implements Runnable {
 
+  private static final String usage = "TODO";
+
   public Seller() {
     super();
   }
@@ -13,13 +15,16 @@ public class Seller extends Client implements Runnable {
     Scanner sc = new Scanner(System.in);
     sc.useDelimiter("\\R");
 
-    System.out.println("usage: TODO");
+    System.out.println("usage: " + usage);
 
     while (true) {
       String input = sc.next().toLowerCase().trim();
       switch (input) {
         case "create auction":
           createAuction();
+          break;
+        case "usage":
+          System.out.println("usage: " + usage);
           break;
         default:
           System.out.println("unknown command: " + input);

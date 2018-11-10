@@ -1,8 +1,11 @@
 package AuctionClient;
 
 import AuctionInterfaces.Auction;
+import AuctionInterfaces.AuctionHouse;
 
 import java.rmi.RemoteException;
+
+import static AuctionInterfaces.AuctionHouse.Response.*;
 
 public class Seller extends Client implements Runnable {
 
@@ -42,8 +45,8 @@ public class Seller extends Client implements Runnable {
   private void createAuction() {
     String item;
     String description;
-    float startingPrice = -1;
-    float reservePrice = -1;
+    float startingPrice;
+    float reservePrice;
 
     System.out.println("Input auction information");
     System.out.print("item name: ");
@@ -52,16 +55,20 @@ public class Seller extends Client implements Runnable {
     System.out.print("item description: ");
     description = sc.next().trim();
 
-    startingPrice = inputCurrency("starting price in format £xx.xx: £");
+    startingPrice = inputCurrency("starting price in format £##.##: £");
 
-    reservePrice = inputCurrency("reserve price in format £xx.xx: £");
+    do {
+      reservePrice = inputCurrency("reserve price in format £##.##: £");
+      if (reservePrice < startingPrice)
+        System.out.println("Error: reserve price cannot be lower than starting price");
+    } while (reservePrice < startingPrice);
 
     try {
       int id = server.createAuction(item, description, startingPrice, reservePrice);
       System.out.println("\nAuction created with id: " + id);
     } catch (RemoteException e) {
-      System.out.println("unable to communicate with Auction house server");
-      e.printStackTrace();
+      System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
+      return;
     }
   }
 
@@ -70,44 +77,57 @@ public class Seller extends Client implements Runnable {
     while (true) {
       System.out.print("Input Auction id of Auction to close: ");
       String input = sc.next().trim();
-      if (!input.chars().allMatch(Character::isDigit)) {
-        System.out.println("Error: not a valid id");
-        continue;
-      }
       try {
-        if (server.getListings()
-            .stream()
-            .noneMatch((Auction a) -> a.getId() == Integer.valueOf(input))) {
-          System.out.println("Error: not a valid id");
+        if (!input.chars().allMatch(Character::isDigit)
+            || server.getListings().stream().noneMatch((Auction a) -> a.getId() == Integer.valueOf(input))) {
+          System.out.println("Error: not a valid Auction id");
           continue;
         }
       } catch (RemoteException e) {
-        System.out.println("unable to communicate with Auction house server");
-        e.printStackTrace();
+        System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
+        return;
       }
       id = Integer.valueOf(input);
       break;
     }
 
+    Object[] response;
+    try {
+      response = server.closeAuction(id);
+    } catch (RemoteException e) {
+      System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
+      return;
+    }
+
+    switch ((AuctionHouse.Response) response[0]) {
+      case ID_NOT_FOUND:
+        System.out.println("Error: Auction id not longer exists");
+        return;
+      case RESERVE_NOT_MET:
+        break;
+      case RESERVE_MET:
+        break;
+      default:
+        break;
+    }
     System.out.println("Auction " + id + " successfully closed");
     // TODO display winner or reserve price
   }
 
   private float inputCurrency(String inputMsg) {
-    float result = -1;
-    do {
+    while (true) {
       System.out.print(inputMsg);
-      try {
-        result = Float.valueOf(sc.next());
-      } catch (NumberFormatException e) {
-        System.out.println("Error: not a number");
-        continue;
-      }
-      if (result < 0)
-        System.out.println("Error: negative values not accepted");
-    } while (result < 0 || String.valueOf(result).split("\\.")[1].length() > 2);
+      String input = sc.next().trim();
 
-    return result;
+      // matches any series of digits with optional decimal point and up to 2 digits after
+      if (input.matches("\\d+(?:\\.\\d\\d?)?"))
+        return Float.valueOf(input);
+
+      if (input.charAt(0) == '-')
+        System.out.println("Error: negative values not accepted");
+      else
+        System.out.println("Error: not a valid number");
+    }
   }
 
   public static void main(String[] args) {

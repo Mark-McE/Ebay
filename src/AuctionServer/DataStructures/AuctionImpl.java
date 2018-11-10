@@ -13,6 +13,8 @@ public class AuctionImpl implements Auction {
   private final float startingPrice;
   private final float reservePrice;
   private float bestBid;
+  private String bestBidName;
+  private String bestBidEmail;
 
   public AuctionImpl(String item, String description, float startingPrice, float reservePrice) {
     if (String.valueOf(startingPrice).split("\\.")[1].length() > 2
@@ -38,9 +40,13 @@ public class AuctionImpl implements Auction {
         + "Current best bid: £%.2f", startingPrice, getBestBid());
   }
 
-  synchronized boolean bid(float price) {
+  synchronized boolean bid(String bidderName, String bidderEmail, float price) {
     if (String.valueOf(price).split("\\.")[1].length() > 2)
       throw new IllegalArgumentException("price given has more than 2 decimal places");
+    if (!bidderEmail.matches("TODO"))
+      throw new IllegalArgumentException("invalid email address format");
+    if (!bidderName.matches("TODO"))
+      throw new IllegalArgumentException("invalid name format");
 
     if (price <= bestBid)
       return false;

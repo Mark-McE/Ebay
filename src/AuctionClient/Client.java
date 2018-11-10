@@ -10,6 +10,9 @@ import java.util.Scanner;
 
 public abstract class Client {
 
+  protected static final String RMI_REMOTE_EXCEPTION_STIRNG
+          = "Error: unable to communicate with Auction house server";
+
   protected final AuctionHouse server;
   protected final Scanner sc = new Scanner(System.in);
 

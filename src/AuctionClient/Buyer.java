@@ -41,12 +41,11 @@ public class Buyer extends Client implements Runnable {
   }
 
   private void browse() {
-    List<Auction> auctions = null;
+    List<Auction> auctions;
     try {
       auctions = server.getListings();
     } catch (RemoteException e) {
-      System.out.println("unable to communicate with Auction house server");
-      e.printStackTrace();
+      System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
       return;
     }
 

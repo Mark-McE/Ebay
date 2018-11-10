@@ -33,7 +33,7 @@ public class Seller extends Client implements Runnable {
           break;
         default:
           System.out.println("unknown command: \"" + input
-              + "\" for a list of commands, type help");
+              + "\". For a list of commands, type help");
           break;
       }
     }
@@ -58,7 +58,7 @@ public class Seller extends Client implements Runnable {
 
     try {
       int id = server.createAuction(item, description, startingPrice, reservePrice);
-      System.out.println("\nAuction created with id: " + id + "\n");
+      System.out.println("\nAuction created with id: " + id);
     } catch (RemoteException e) {
       System.out.println("unable to communicate with Auction house server");
       e.printStackTrace();

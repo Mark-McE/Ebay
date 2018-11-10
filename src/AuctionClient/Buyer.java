@@ -34,7 +34,7 @@ public class Buyer extends Client implements Runnable {
           break;
         default:
           System.out.println("unknown command: \"" + input
-              + "\" for a list of commands, type help");
+              + "\". For a list of commands, type help");
           break;
       }
     }
@@ -53,7 +53,8 @@ public class Buyer extends Client implements Runnable {
     System.out.println("Auction listings:");
 
     for (Auction auction : auctions)
-      System.out.println(auction.toReadableString());
+      System.out.println(auction.toReadableString() + "\n");
+    System.out.println(auctions.size() + " total listings found");
   }
 
   private void bid() {

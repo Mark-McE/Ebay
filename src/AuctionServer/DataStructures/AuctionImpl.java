@@ -30,11 +30,12 @@ public class AuctionImpl implements Auction {
 
   @Override
   public String toReadableString() {
-    return "\n\t"
+    return String.format( "\n\t"
         + item + " (id:" + id + ")" + "\n\t"
         + description + "\n\t"
         + "\n\t"
-        + "Starting price: £" + startingPrice;
+        + "Starting price: £%.2f \n\t"
+        + "Current best bid: £%.2f", startingPrice, getBestBid());
   }
 
   synchronized boolean bid(float price) {
@@ -47,7 +48,7 @@ public class AuctionImpl implements Auction {
     bestBid = price;
     return true;
   }
-  
+
   synchronized float getBestBid() {
     return bestBid;
   }

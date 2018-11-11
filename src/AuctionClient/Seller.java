@@ -91,6 +91,7 @@ public class Seller extends Client implements Runnable {
       break;
     }
 
+    // TODO make server response object like they do in part 1 of cw
     Object[] response;
     try {
       response = server.closeAuction(id);

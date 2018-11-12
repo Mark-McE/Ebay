@@ -6,13 +6,15 @@ public interface Auction extends Serializable {
 
   String toReadableString();
 
+  boolean isClosed();
+
+  float getWinnerBid();
+  String getWinnerName();
+  String getWinnerEmail();
+
   int getId();
-
   String getItem();
-
   String getDescription();
-
   float getStartingPrice();
-
   float getReservePrice();
 }

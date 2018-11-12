@@ -1,11 +1,8 @@
 package AuctionClient;
 
 import AuctionInterfaces.Auction;
-import AuctionInterfaces.AuctionHouse;
 
 import java.rmi.RemoteException;
-
-import static AuctionInterfaces.AuctionHouse.Response.*;
 
 public class Seller extends Client implements Runnable {
 
@@ -73,46 +70,45 @@ public class Seller extends Client implements Runnable {
   }
 
   private void closeAuction() {
-    int id;
-    while (true) {
-      System.out.print("Input Auction id of Auction to close: ");
-      String input = sc.next().trim();
-      try {
-        if (!input.chars().allMatch(Character::isDigit)
-            || server.getListings().stream().noneMatch((Auction a) -> a.getId() == Integer.valueOf(input))) {
-          System.out.println("Error: not a valid Auction id");
-          continue;
-        }
-      } catch (RemoteException e) {
-        System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
+    System.out.print("Auction id of Auction to close: ");
+    String input = sc.next().trim();
+    try {
+      if (!input.chars().allMatch(Character::isDigit)
+          || server.getListings().stream()
+          .noneMatch(a -> a.getId() == Integer.valueOf(input))) {
+        System.out.println("Error: not a valid Auction id");
         return;
       }
-      id = Integer.valueOf(input);
-      break;
+    } catch (RemoteException e) {
+      System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
+      return;
     }
+    int id = Integer.valueOf(input);
 
-    // TODO make server response object like they do in part 1 of cw
-    Object[] response;
+    Auction closedAuction;
     try {
-      response = server.closeAuction(id);
+      closedAuction = server.closeAuction(id);
     } catch (RemoteException e) {
       System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
       return;
     }
 
-    switch ((AuctionHouse.Response) response[0]) {
-      case ID_NOT_FOUND:
-        System.out.println("Error: Auction id not longer exists");
-        return;
-      case RESERVE_NOT_MET:
-        break;
-      case RESERVE_MET:
-        break;
-      default:
-        break;
+    if (closedAuction == null) {
+      // if here, the auction was closed between auction id input and closeAuction method call
+      System.out.println("Error: Auction id no longer exist");
+      return;
     }
     System.out.println("Auction " + id + " successfully closed");
-    // TODO display winner or reserve price
+
+    if (closedAuction.getWinnerName() == null) {
+      System.out.println("Reserve price not met, item not sold.");
+    } else {
+      System.out.println(String.format(
+          "Winning bid: £%.2f\n" +
+          "Winning bidder: %s, (%s)",
+          closedAuction.getWinnerBid(), closedAuction.getWinnerName(),
+          closedAuction.getWinnerEmail()));
+    }
   }
 
   private float inputCurrency(String inputMsg) {

@@ -2,12 +2,12 @@ package AuctionServer;
 
 import AuctionInterfaces.Auction;
 import AuctionInterfaces.AuctionHouse;
-import AuctionServer.DataStructures.AuctionImpl;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class AuctionHouseImpl
     extends java.rmi.server.UnicastRemoteObject
@@ -17,6 +17,22 @@ public class AuctionHouseImpl
 
   public AuctionHouseImpl() throws RemoteException {
     super();
+  }
+
+  @Override
+  synchronized public Auction closeAuction(int id) throws RemoteException {
+    final Auction[] result = new Auction[1];
+
+    auctions.stream()
+        .filter((Auction a) -> a.getId() == id)
+        .findFirst()
+        .ifPresent(auction -> {
+          auctions.remove(auction);
+          ((AuctionImpl) auction).close();
+          result[0] = auction;
+        });
+
+    return result[0];
   }
 
   @Override

@@ -1,20 +1,17 @@
 package AuctionInterfaces;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 public interface Auction extends Serializable {
 
   String toReadableString();
 
   boolean isClosed();
-
-  float getWinnerBid();
-  String getWinnerName();
-  String getWinnerEmail();
-
+  Optional<Bid> getWinningBid();
   int getId();
   String getItem();
   String getDescription();
-  float getStartingPrice();
-  float getReservePrice();
+  Price getStartingPrice();
+  Price getReservePrice();
 }

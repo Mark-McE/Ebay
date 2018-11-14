@@ -1,7 +1,10 @@
 package AuctionServer;
 
 import AuctionInterfaces.Auction;
+import AuctionInterfaces.Bid;
+import AuctionInterfaces.Price;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AuctionImpl implements Auction {
@@ -11,18 +14,13 @@ public class AuctionImpl implements Auction {
   private final int id;
   private final String item;
   private final String description;
-  private final float startingPrice;
-  private final float reservePrice;
+  private final Price startingPrice;
+  private final Price reservePrice;
 
   private boolean isClosed;
-  private float bestBid;
-  private String bestBidName;
-  private String bestBidEmail;
+  private Bid bestBid;
 
-  public AuctionImpl(String item, String description, float startingPrice, float reservePrice) {
-    if (String.valueOf(startingPrice).split("\\.")[1].length() > 2
-    || String.valueOf(reservePrice).split("\\.")[1].length() > 2)
-      throw new IllegalArgumentException("prices given have more than 2 decimal places");
+  public AuctionImpl(String item, String description, Price startingPrice, Price reservePrice) {
 
     this.id = idCounter.getAndIncrement();
     this.item = item;
@@ -31,35 +29,30 @@ public class AuctionImpl implements Auction {
     this.reservePrice = reservePrice;
 
     isClosed = false;
-    bestBid = startingPrice;
+    bestBid = null;
   }
 
   @Override
   public String toReadableString() {
-    return String.format( "\n\t"
+    String result = String.format( "\n\t"
         + item + " (id:" + id + ")" + "\n\t"
         + description + "\n\t"
         + "\n\t"
         + "Starting price: £%.2f \n\t"
-        + "Current best bid: £%.2f", startingPrice, getBestBid());
+        + "Current best bid: ", startingPrice);
+
+    if (bestBid == null)
+      return result + "none";
+    return result + String.format("£%.2f", bestBid.getPrice().toFloat());
   }
 
-  synchronized boolean bid(String name, String email, float price) {
-    // TODO: create Bidder and Bid class
-    // TODO: Bidder.createBid(float:price)
-    if (String.valueOf(price).split("\\.")[1].length() > 2)
-      throw new IllegalArgumentException("price given has more than 2 decimal places");
-    if (!email.matches("[a-zA-z][\\w\\.-]*@(?:[a-zA-z][\\w\\.-]+\\.)+[a-zA-z]{2,4}"))
-      throw new IllegalArgumentException("invalid email address format");
-    if (!name.matches("[A-Z][a-zA-z'-]*[a-zA-z] [A-Z][a-zA-z'-]*[a-zA-z]"))
-      throw new IllegalArgumentException("invalid name format");
-
-    if (isClosed || price <= bestBid)
+  synchronized boolean bid(Bid bid) {
+    if (isClosed
+        || bestBid != null
+        && bid.getPrice().toFloat() <= bestBid.getPrice().toFloat())
       return false;
 
-    bestBidName = name;
-    bestBidEmail = email;
-    bestBid = price;
+    bestBid = bid;
     return true;
   }
 
@@ -74,22 +67,12 @@ public class AuctionImpl implements Auction {
   }
 
   @Override
-  public float getWinnerBid() {
-    return isClosed && bestBid > reservePrice ? bestBid : -1;
-  }
-
-  @Override
-  public String getWinnerName() {
-    return isClosed && bestBid > reservePrice  ? bestBidName : null;
-  }
-
-  @Override
-  public String getWinnerEmail() {
-    return isClosed && bestBid > reservePrice  ? bestBidEmail : null;
-  }
-
-  synchronized float getBestBid() {
-    return bestBid;
+  public Optional<Bid> getWinningBid() {
+    if (isClosed
+        && bestBid != null
+        && bestBid.getPrice().toFloat() > reservePrice.toFloat())
+      return Optional.of(bestBid);
+    return Optional.empty();
   }
 
   @Override
@@ -108,12 +91,12 @@ public class AuctionImpl implements Auction {
   }
 
   @Override
-  public float getStartingPrice() {
+  public Price getStartingPrice() {
     return startingPrice;
   }
 
   @Override
-  public float getReservePrice() {
+  public Price getReservePrice() {
     return reservePrice;
   }
 }

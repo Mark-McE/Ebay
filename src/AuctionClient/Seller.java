@@ -52,10 +52,10 @@ public class Seller extends Client implements Runnable {
     System.out.print("item description: ");
     description = sc.next().trim();
 
-    startingPrice = inputCurrency("starting price in format £##.##: £");
+    startingPrice = inputPrice("starting price in format £##.##: £");
 
     do {
-      reservePrice = inputCurrency("reserve price in format £##.##: £");
+      reservePrice = inputPrice("reserve price in format £##.##: £");
       if (reservePrice < startingPrice)
         System.out.println("Error: reserve price cannot be lower than starting price");
     } while (reservePrice < startingPrice);
@@ -74,7 +74,7 @@ public class Seller extends Client implements Runnable {
     String input = sc.next().trim();
     try {
       if (!input.chars().allMatch(Character::isDigit)
-          || server.getListings().stream()
+          || server.getLiveAuctions().stream()
           .noneMatch(a -> a.getId() == Integer.valueOf(input))) {
         System.out.println("Error: not a valid Auction id");
         return;
@@ -106,7 +106,7 @@ public class Seller extends Client implements Runnable {
       System.out.println(String.format(
           "Winning bid: £%.2f\n" +
           "Winning bidder: %s, (%s)",
-          closedAuction.getWinnerBid(), closedAuction.getWinnerName(),
+          closedAuction.getWinningBid(), closedAuction.getWinnerName(),
           closedAuction.getWinnerEmail()));
     }
   }

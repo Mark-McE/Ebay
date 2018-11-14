@@ -1,7 +1,8 @@
 package AuctionClient;
 
 import AuctionInterfaces.Auction;
-import AuctionInterfaces.BidResponse;
+import AuctionInterfaces.AuctionHouse.BidResponse;
+import AuctionInterfaces.Price;
 
 import java.rmi.RemoteException;
 import java.util.List;
@@ -44,7 +45,7 @@ public class Buyer extends Client implements Runnable {
   private void browse() {
     List<Auction> auctions;
     try {
-      auctions = server.getListings();
+      auctions = server.getLiveAuctions();
     } catch (RemoteException e) {
       System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
       return;
@@ -57,9 +58,9 @@ public class Buyer extends Client implements Runnable {
     System.out.println(auctions.size() + " total listings found");
   }
 
-  private void bid() {
+  private void bid() throws RemoteException {
     int id;
-    float price;
+    Price price;
     String name;
     String email;
     BidResponse response;
@@ -68,13 +69,19 @@ public class Buyer extends Client implements Runnable {
       System.out.print("auction id: ");
       String input = sc.next().trim();
       if (input.chars().allMatch(Character::isDigit)) {
-        id = Integer.valueOf(input); // TODO catch numberFormatException for input of int.maxValue+1
+        try {
+          id = Integer.valueOf(input);
+        } catch (NumberFormatException e) {
+          // For input of id > int.maxValue
+          System.out.print("Error: invalid auction id");
+          continue;
+        }
         break;
       }
-      System.out.println("Error: invalid auction id format");
+      System.out.println("Error: invalid auction id");
     }
 
-    price = inputCurrency("bid price: £");
+    price = inputPrice("bid price: £");
 
     System.out.print("Full name: ");
     name = sc.next().trim();
@@ -82,12 +89,10 @@ public class Buyer extends Client implements Runnable {
     System.out.print("Email: ");
     email = sc.next().trim();
 
-    try {
-      response = server.bid(id, price, name, email);
-    } catch (RemoteException e) {
-      System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
-      return;
-    }
+    // TODO: implement below, restructure for saved bidder per instance of buyer
+    // TODO: make all menu methods of buyer ans seller throw remoteException in method signature
+    response = server.bid(id, server.createBid(server.createBidder(), price));
+
     switch (response) {
       case OK:
         System.out.println("Bid OK");

@@ -2,15 +2,16 @@ package AuctionServer;
 
 import AuctionInterfaces.Auction;
 import AuctionInterfaces.AuctionHouse;
-import AuctionInterfaces.BidResponse;
+import AuctionInterfaces.Bid;
+import AuctionInterfaces.Price;
 
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class AuctionHouseImpl extends java.rmi.server.UnicastRemoteObject
-    implements AuctionHouse {
+public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHouse {
 
   private Map<Integer, AuctionImpl> auctions = new ConcurrentHashMap<>();
 
@@ -19,11 +20,11 @@ public class AuctionHouseImpl extends java.rmi.server.UnicastRemoteObject
   }
 
   @Override
-  public BidResponse bid(int id, float price, String name, String email) throws RemoteException {
+  public BidResponse bid(int id, Bid bid) throws RemoteException {
     final boolean[] bidOK = new boolean[1];
 
     Auction auct = auctions.computeIfPresent(id, (auctionId, auction) -> {
-      bidOK[0] = auction.bid(name, email, price);
+      bidOK[0] = auction.bid(bid);
       return auction;
     });
 
@@ -36,12 +37,12 @@ public class AuctionHouseImpl extends java.rmi.server.UnicastRemoteObject
   }
 
   @Override
-  public Auction closeAuction(int id) throws RemoteException {
-    return auctions.computeIfPresent(id, (auctionId, auction) -> auction.close());
+  public Optional<Auction> closeAuction(int id) throws RemoteException {
+    return Optional.of(auctions.computeIfPresent(id, (auctionId, auction) -> auction.close()));
   }
 
   @Override
-  public int createAuction(String item, String description, float startingPrice, float reservePrice)
+  public int createAuction(String item, String description, Price startingPrice, Price reservePrice)
       throws RemoteException {
 
     AuctionImpl auction = new AuctionImpl(item, description, startingPrice, reservePrice);
@@ -51,12 +52,18 @@ public class AuctionHouseImpl extends java.rmi.server.UnicastRemoteObject
   }
 
   @Override
-  public List<Auction> getListings() throws RemoteException {
+  public Price createPrice(Float price) throws RemoteException, IllegalArgumentException {
+    if (price < 0)
+      throw new IllegalArgumentException("negative values not accepted");
+    return new PriceImpl(price);
+  }
+
+  @Override
+  public List<Auction> getLiveAuctions() throws RemoteException {
     return Collections.unmodifiableList(
         auctions.values()
         .stream()
         .filter(auction -> !auction.isClosed())
-        .collect(Collectors.toList())
-    );
+        .collect(Collectors.toList()));
   }
 }

@@ -2,15 +2,24 @@ package AuctionInterfaces;
 
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Optional;
 
 public interface AuctionHouse extends java.rmi.Remote {
 
-  int createAuction(String item, String description, float startingPrice, float reservePrice)
+  enum BidResponse {
+    OK,
+    TOO_LOW,
+    AUCTION_NOT_FOUND
+  }
+
+  int createAuction(String item, String description, Price startingPrice, Price reservePrice)
       throws RemoteException;
 
-  Auction closeAuction(int id) throws RemoteException;
+  Price createPrice(Float price) throws RemoteException, IllegalArgumentException;
 
-  BidResponse bid(int id, float price, String name, String email) throws RemoteException;
+  Optional<Auction> closeAuction(int id) throws RemoteException;
 
-  List<Auction> getListings() throws RemoteException;
+  BidResponse bid(int auctionId, Bid bid) throws RemoteException;
+
+  List<Auction> getLiveAuctions() throws RemoteException;
 }

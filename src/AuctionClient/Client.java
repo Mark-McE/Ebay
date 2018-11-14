@@ -1,6 +1,7 @@
 package AuctionClient;
 
 import AuctionInterfaces.AuctionHouse;
+import AuctionInterfaces.Price;
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -32,19 +33,24 @@ public abstract class Client {
     sc.useDelimiter("\\R");
   }
 
-  protected float inputCurrency(String inputMsg) {
+  protected Price inputPrice(String inputMsg) throws RemoteException {
     while (true) {
       System.out.print(inputMsg);
       String input = sc.next().trim();
 
       // matches any series of digits with optional decimal point and up to 2 digits after
       if (input.matches("\\d+(?:\\.\\d\\d?)?"))
-        return Float.valueOf(input);
+        try {
+          return server.createPrice(Float.valueOf(input));
+        } catch (NumberFormatException e) {
+          System.out.println("Error: not a valid number");
+          continue;
+        }
 
       if (input.charAt(0) == '-')
         System.out.println("Error: negative values not accepted");
       else
-        System.out.println("Error: not a valid number");
+        System.out.println("Error: not a valid price");
     }
   }
 }

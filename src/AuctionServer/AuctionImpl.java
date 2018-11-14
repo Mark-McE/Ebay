@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class AuctionImpl implements Auction {
   private static final AtomicInteger idCounter = new AtomicInteger(0);
+  // TODO solve problem of incrementing to int.maxValue
 
   private final int id;
   private final String item;
@@ -44,6 +45,8 @@ public class AuctionImpl implements Auction {
   }
 
   synchronized boolean bid(String name, String email, float price) {
+    // TODO: create Bidder and Bid class
+    // TODO: Bidder.createBid(float:price)
     if (String.valueOf(price).split("\\.")[1].length() > 2)
       throw new IllegalArgumentException("price given has more than 2 decimal places");
     if (!email.matches("[a-zA-z][\\w\\.-]*@(?:[a-zA-z][\\w\\.-]+\\.)+[a-zA-z]{2,4}"))
@@ -60,8 +63,9 @@ public class AuctionImpl implements Auction {
     return true;
   }
 
-  synchronized void close() {
+  synchronized AuctionImpl close() {
     isClosed = true;
+    return this;
   }
 
   @Override

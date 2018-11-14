@@ -111,22 +111,6 @@ public class Seller extends Client implements Runnable {
     }
   }
 
-  private float inputCurrency(String inputMsg) {
-    while (true) {
-      System.out.print(inputMsg);
-      String input = sc.next().trim();
-
-      // matches any series of digits with optional decimal point and up to 2 digits after
-      if (input.matches("\\d+(?:\\.\\d\\d?)?"))
-        return Float.valueOf(input);
-
-      if (input.charAt(0) == '-')
-        System.out.println("Error: negative values not accepted");
-      else
-        System.out.println("Error: not a valid number");
-    }
-  }
-
   public static void main(String[] args) {
     new Seller().run();
   }

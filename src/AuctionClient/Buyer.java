@@ -1,6 +1,7 @@
 package AuctionClient;
 
 import AuctionInterfaces.Auction;
+import AuctionInterfaces.BidResponse;
 
 import java.rmi.RemoteException;
 import java.util.List;
@@ -57,7 +58,47 @@ public class Buyer extends Client implements Runnable {
   }
 
   private void bid() {
-    System.out.println("bidding ...");
+    int id;
+    float price;
+    String name;
+    String email;
+    BidResponse response;
+
+    while (true) {
+      System.out.print("auction id: ");
+      String input = sc.next().trim();
+      if (input.chars().allMatch(Character::isDigit)) {
+        id = Integer.valueOf(input); // TODO catch numberFormatException for input of int.maxValue+1
+        break;
+      }
+      System.out.println("Error: invalid auction id format");
+    }
+
+    price = inputCurrency("bid price: £");
+
+    System.out.print("Full name: ");
+    name = sc.next().trim();
+
+    System.out.print("Email: ");
+    email = sc.next().trim();
+
+    try {
+      response = server.bid(id, price, name, email);
+    } catch (RemoteException e) {
+      System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
+      return;
+    }
+    switch (response) {
+      case OK:
+        System.out.println("Bid OK");
+        break;
+      case TOO_LOW:
+        System.out.println("Error: Bid value lower than current best bid");
+        break;
+      case AUCTION_NOT_FOUND:
+        System.out.println("Error: Auction id not found");
+        break;
+    }
   }
 
   public static void main(String[] args) {

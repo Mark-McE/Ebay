@@ -10,5 +10,7 @@ public interface AuctionHouse extends java.rmi.Remote {
 
   Auction closeAuction(int id) throws RemoteException;
 
+  BidResponse bid(int id, float price, String name, String email) throws RemoteException;
+
   List<Auction> getListings() throws RemoteException;
 }

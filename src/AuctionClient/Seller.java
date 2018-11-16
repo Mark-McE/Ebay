@@ -86,11 +86,22 @@ public class Seller extends Client {
     Price reservePrice;
 
     System.out.println("Input auction information");
-    System.out.print("Item name: ");
-    item = sc.next().trim();
 
-    System.out.print("Item description: ");
-    description = sc.next().trim();
+    while (true) {
+      System.out.print("Item name: ");
+      item = sc.next().trim();
+      if (item.length() > 0)
+        break;
+      System.out.println("Error: item name not long enough");
+    }
+
+    while (true) {
+      System.out.print("Item description: ");
+      description = sc.next().trim();
+      if (description.length() > 0)
+        break;
+      System.out.println("Error: item description not long enough");
+    }
 
     startingPrice = inputPrice("Starting price in format £##.##: £");
 
@@ -164,7 +175,7 @@ public class Seller extends Client {
     Bid winningBid = closedAuction.getWinningBid();
     if (winningBid == null) {
       System.out.printf(
-          "Reserve price £%.2f not met, item not sold.\n",
+          "Reserve price £%.2f not exceeded, item not sold.\n",
           closedAuction.getReservePrice().toFloat());
     } else {
       System.out.printf(

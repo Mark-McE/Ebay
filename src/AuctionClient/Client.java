@@ -87,10 +87,7 @@ public abstract class Client {
         return price;
       }
 
-      if (input.charAt(0) == '-')
-        System.out.println("Error: negative values not accepted");
-      else
-        System.out.println("Error: not a valid price");
+      System.out.println("Error: not a valid price");
     }
   }
 }

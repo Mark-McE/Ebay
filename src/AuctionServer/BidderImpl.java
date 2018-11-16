@@ -27,11 +27,11 @@ public class BidderImpl implements Bidder, Serializable {
 
   @Override
   public String getName() {
-    return null;
+    return name;
   }
 
   @Override
   public String getEmail() {
-    return null;
+    return email;
   }
 }

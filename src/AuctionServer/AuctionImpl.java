@@ -4,12 +4,11 @@ import AuctionInterfaces.Auction;
 import AuctionInterfaces.Bid;
 import AuctionInterfaces.Price;
 
-import java.util.Optional;
+import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class AuctionImpl implements Auction {
+public class AuctionImpl implements Auction, Serializable {
   private static final AtomicInteger idCounter = new AtomicInteger(0);
-  // TODO solve problem of incrementing to int.maxValue
 
   private final int id;
   private final String item;
@@ -32,22 +31,10 @@ public class AuctionImpl implements Auction {
     bestBid = null;
   }
 
-  @Override
-  public String toReadableString() {
-    String result = String.format( "\n\t"
-        + item + " (id:" + id + ")" + "\n\t"
-        + description + "\n\t"
-        + "\n\t"
-        + "Starting price: £%.2f \n\t"
-        + "Current best bid: ", startingPrice);
-
-    if (bestBid == null)
-      return result + "none";
-    return result + String.format("£%.2f", bestBid.getPrice().toFloat());
-  }
-
   synchronized boolean bid(Bid bid) {
     if (isClosed
+        || bestBid == null
+        && bid.getPrice().toFloat() < startingPrice.toFloat()
         || bestBid != null
         && bid.getPrice().toFloat() <= bestBid.getPrice().toFloat())
       return false;
@@ -67,12 +54,12 @@ public class AuctionImpl implements Auction {
   }
 
   @Override
-  public Optional<Bid> getWinningBid() {
+  public Bid getWinningBid() {
     if (isClosed
         && bestBid != null
         && bestBid.getPrice().toFloat() > reservePrice.toFloat())
-      return Optional.of(bestBid);
-    return Optional.empty();
+      return bestBid;
+    return null;
   }
 
   @Override

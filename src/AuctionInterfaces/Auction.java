@@ -1,14 +1,24 @@
 package AuctionInterfaces;
 
 import java.io.Serializable;
-import java.util.Optional;
 
 public interface Auction extends Serializable {
 
-  String toReadableString();
+  default String toReadableString() {
+    String result = String.format( "\n\t"
+        + getItem() + " (id:" + getId() + ")" + "\n\t"
+        + getDescription() + "\n\t"
+        + "\n\t"
+        + "Starting price: £%.2f \n\t"
+        + "Current best bid: ", getStartingPrice().toFloat());
+
+    if (getWinningBid() == null)
+      return result + "none";
+    return result + String.format("£%.2f", getWinningBid().toFloat());
+  }
 
   boolean isClosed();
-  Optional<Bid> getWinningBid();
+  Bid getWinningBid();
   int getId();
   String getItem();
   String getDescription();

@@ -1,13 +1,12 @@
 package AuctionServer;
 
-import AuctionInterfaces.Auction;
-import AuctionInterfaces.AuctionHouse;
-import AuctionInterfaces.Bid;
-import AuctionInterfaces.Price;
+import AuctionInterfaces.*;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -32,13 +31,20 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
       return BidResponse.AUCTION_NOT_FOUND;
     if (bidOK[0])
       return BidResponse.OK;
+    else if (auct.isClosed())
+      return BidResponse.AUCTION_CLOSED;
     else
       return BidResponse.TOO_LOW;
   }
 
   @Override
-  public Optional<Auction> closeAuction(int id) throws RemoteException {
-    return Optional.of(auctions.computeIfPresent(id, (auctionId, auction) -> auction.close()));
+  public Auction closeAuction(int id) throws RemoteException {
+    return auctions.computeIfPresent(id, (auctionId, auction) -> auction.close());
+  }
+
+  @Override
+  public Bidder createBidder(String name, String email) throws RemoteException {
+    return new BidderImpl(name, email);
   }
 
   @Override

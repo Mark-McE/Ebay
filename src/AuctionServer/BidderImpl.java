@@ -13,14 +13,15 @@ public class BidderImpl implements Bidder, Serializable {
   public BidderImpl(String name, String email) {
     if (!email.matches("[a-zA-z][\\w\\.-]*@(?:[a-zA-z][\\w\\.-]+\\.)+[a-zA-z]{2,4}"))
       throw new IllegalArgumentException("invalid email address format");
-    if (!name.matches("[A-Z][a-zA-z'-]*[a-zA-z] [A-Z][a-zA-z'-]*[a-zA-z]"))
+    if (!name.matches("[A-Za-z][a-zA-z'-]*[a-zA-z] [A-Za-z][a-zA-z'-]*[a-zA-z]"))
       throw new IllegalArgumentException("invalid name format");
 
     this.name = name;
     this.email = email;
   }
 
-  Bid createBid(Price price) {
+  @Override
+  public Bid createBid(Price price) {
     return new BidImpl(this, price);
   }
 

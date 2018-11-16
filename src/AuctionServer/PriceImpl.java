@@ -17,6 +17,6 @@ public class PriceImpl implements Price, Serializable {
 
   @Override
   public float toFloat() {
-    return 0;
+    return price;
   }
 }

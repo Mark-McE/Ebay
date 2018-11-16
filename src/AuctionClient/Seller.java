@@ -1,12 +1,21 @@
 package AuctionClient;
 
 import AuctionInterfaces.Auction;
+import AuctionInterfaces.Bid;
+import AuctionInterfaces.Price;
 
 import java.rmi.RemoteException;
 
 public class Seller extends Client implements Runnable {
 
-  private static final String usage = "TODO";
+  private static final String help =
+      "Seller client for Auction House.\n"
+      + "Available commands:\n"
+      + "Create auction:\tCreate a new auction on the auction house. An auction"
+      + "id will be provided upon creating an auction.\n"
+      + "Close auction:\tClose an auction on the Auction house, the winning bidder "
+      + "or reserve price will be quoted on close.\n"
+      + "Help:\t\tPrints this help message.";
 
   public Seller() {
     super();
@@ -14,100 +23,100 @@ public class Seller extends Client implements Runnable {
 
   @Override
   public void run() {
-    System.out.println("usage: " + usage);
+    System.out.println(help);
 
     while (true) {
       System.out.print("\nAuction_house_seller_client>");
       String input = sc.next().toLowerCase().trim();
-      switch (input) {
-        case "create auction":
-          createAuction();
-          break;
-        case "close auction":
-          closeAuction();
-          break;
-        case "/?":
-        case "help":
-        case "usage":
-          System.out.println("usage: " + usage);
-          break;
-        default:
-          System.out.println("unknown command: \"" + input
-              + "\". For a list of commands, type help");
-          break;
+      try {
+        switch (input) {
+          case "create auction":
+            createAuction();
+            break;
+          case "close auction":
+            closeAuction();
+            break;
+          case "/?":
+          case "help":
+            System.out.println(help);
+            break;
+          default:
+            System.out.println("unknown command: \"" + input
+                + "\". For a list of commands, type help");
+            break;
+        }
+      } catch (RemoteException e) {
+        System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
+        if (reconnectToServer())
+          System.out.println("... Reconnected to Auction house server. Please try action again");
       }
     }
   }
 
-  private void createAuction() {
+  private void createAuction() throws RemoteException {
     String item;
     String description;
-    float startingPrice;
-    float reservePrice;
+    Price startingPrice;
+    Price reservePrice;
 
     System.out.println("Input auction information");
-    System.out.print("item name: ");
+    System.out.print("Item name: ");
     item = sc.next().trim();
 
-    System.out.print("item description: ");
+    System.out.print("Item description: ");
     description = sc.next().trim();
 
-    startingPrice = inputPrice("starting price in format £##.##: £");
+    startingPrice = inputPrice("Starting price in format £##.##: £");
 
-    do {
-      reservePrice = inputPrice("reserve price in format £##.##: £");
-      if (reservePrice < startingPrice)
+    while (true) {
+      reservePrice = inputPrice("Reserve price in format £##.##: £");
+      if (reservePrice.toFloat() < startingPrice.toFloat())
         System.out.println("Error: reserve price cannot be lower than starting price");
-    } while (reservePrice < startingPrice);
-
-    try {
-      int id = server.createAuction(item, description, startingPrice, reservePrice);
-      System.out.println("\nAuction created with id: " + id);
-    } catch (RemoteException e) {
-      System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
-      return;
+      else
+        break;
     }
+
+    int id = server.createAuction(item, description, startingPrice, reservePrice);
+    System.out.println("\nAuction created with id: " + id);
   }
 
-  private void closeAuction() {
-    System.out.print("Auction id of Auction to close: ");
+  private void closeAuction() throws RemoteException {
+    System.out.print("Auction id: ");
     String input = sc.next().trim();
-    try {
-      if (!input.chars().allMatch(Character::isDigit)
-          || server.getLiveAuctions().stream()
-          .noneMatch(a -> a.getId() == Integer.valueOf(input))) {
-        System.out.println("Error: not a valid Auction id");
-        return;
-      }
-    } catch (RemoteException e) {
-      System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
-      return;
-    }
-    int id = Integer.valueOf(input);
 
-    Auction closedAuction;
-    try {
-      closedAuction = server.closeAuction(id);
-    } catch (RemoteException e) {
-      System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
+    int id;
+    if (!input.matches("[+-]?\\d+")) {
+      System.out.println("Error: not a valid Auction id");
       return;
     }
+    try {
+      id = Integer.valueOf(input);
+    } catch (NumberFormatException e) {
+      // For input of |id| > int.maxValue
+      System.out.println("Error: not a valid Auction id");
+      return;
+    }
+
+    Auction closedAuction = server.closeAuction(id);
 
     if (closedAuction == null) {
-      // if here, the auction was closed between auction id input and closeAuction method call
-      System.out.println("Error: Auction id no longer exist");
+      System.out.println("Error: Auction id not found (may already be closed)");
       return;
     }
     System.out.println("Auction " + id + " successfully closed");
 
-    if (closedAuction.getWinnerName() == null) {
-      System.out.println("Reserve price not met, item not sold.");
+    Bid winningBid = closedAuction.getWinningBid();
+    if (winningBid == null) {
+      System.out.printf(
+          "Reserve price £%.2f not met, item not sold.\n",
+          closedAuction.getReservePrice().toFloat());
     } else {
-      System.out.println(String.format(
+      System.out.printf(
           "Winning bid: £%.2f\n" +
-          "Winning bidder: %s, (%s)",
-          closedAuction.getWinningBid(), closedAuction.getWinnerName(),
-          closedAuction.getWinnerEmail()));
+          "Winning bidder: %s, (%s)\n",
+          winningBid.toFloat(),
+          winningBid.getBidderName(),
+          winningBid.getBidderEmail());
     }
   }
 

@@ -12,6 +12,8 @@ public class PriceImpl implements Price, Serializable {
    * @param price
    */
   public PriceImpl(float price) {
+    if (price >= Integer.MAX_VALUE/100)
+      throw new IllegalArgumentException("price cannot exceed Integer.MAX_VALUE/100");
     this.price = Math.round(price * 100) / 100f;
   }
 

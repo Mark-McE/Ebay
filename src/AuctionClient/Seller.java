@@ -6,7 +6,26 @@ import AuctionInterfaces.Price;
 
 import java.rmi.RemoteException;
 
-public class Seller extends Client implements Runnable {
+/**
+ *  A client program that enables a seller to create a new auction for an item
+ *  offered for sale.
+ *
+ *  The seller must provide
+ *    (i) a starting price,
+ *    (ii) a short description of the item
+ *    (iii) a minimum acceptable price (reserve price).
+ *
+ *  Creating an auction will return an auction id.
+ *
+ *  A seller can create multiple auctions.
+ *
+ *  A seller can close an auction by quoting the auction id.
+ *
+ *  When a seller closes an auction, if there is a winner, their details will be
+ *  printed to System.out (name and email address) or if there is no winner,
+ *  the reserve price will be printed to System.out.
+ */
+public class Seller extends Client {
 
   private static final String help =
       "Seller client for Auction House.\n"
@@ -21,7 +40,9 @@ public class Seller extends Client implements Runnable {
     super();
   }
 
-  @Override
+  /**
+   * Begins the command-line interface for this client.
+   */
   public void run() {
     System.out.println(help);
 
@@ -53,6 +74,11 @@ public class Seller extends Client implements Runnable {
     }
   }
 
+  /**
+   * Takes user input for creating a new auction then calls
+   * createAuction(item, description, startingPrice, reservePrice) with the user
+   * inputted values.
+   */
   private void createAuction() throws RemoteException {
     String item;
     String description;
@@ -76,10 +102,28 @@ public class Seller extends Client implements Runnable {
         break;
     }
 
+    createAuction(item, description, startingPrice, reservePrice);
+  }
+
+  /**
+   * Creates a new auction on the server with the specified information.
+   * The auction id of the newly created auction will be printed to the screen
+   * @param item The name of the item to sell in the auction
+   * @param description A short description of the item for sale
+   * @param startingPrice The initial bid on the item
+   * @param reservePrice The minimum price required to sell the item once the
+   *                     auction is closed. (not displayed to bidders)
+   */
+  public void createAuction(String item, String description, Price startingPrice, Price reservePrice)
+      throws RemoteException {
+
     int id = server.createAuction(item, description, startingPrice, reservePrice);
     System.out.println("\nAuction created with id: " + id);
   }
 
+  /**
+   * Takes user input for the auction id to close then calls closeAuction(id)
+   */
   private void closeAuction() throws RemoteException {
     System.out.print("Auction id: ");
     String input = sc.next().trim();
@@ -97,6 +141,18 @@ public class Seller extends Client implements Runnable {
       return;
     }
 
+    closeAuction(id);
+  }
+
+  /**
+   * Closes the auction on the auction house server.
+   *
+   * The winning bid and bidder's details will be displayed if the reserve
+   * price was met. Otherwise the reserve price will be displayed and a message
+   * stating the reserve price was not met.
+   * @param id The id of the auction to close
+   */
+  public void closeAuction(int id) throws RemoteException {
     Auction closedAuction = server.closeAuction(id);
 
     if (closedAuction == null) {

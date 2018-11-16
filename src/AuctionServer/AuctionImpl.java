@@ -31,10 +31,24 @@ public class AuctionImpl implements Auction, Serializable {
     bestBid = null;
   }
 
+  @Override
+  public String toReadableString() {
+    String result = String.format( "\n\t"
+        + item + " (id:" + id + ")" + "\n\t"
+        + description + "\n\t"
+        + "\n\t"
+        + "Starting price: £%.2f \n\t"
+        + "Current best bid: ", startingPrice.toFloat());
+
+    if (bestBid == null)
+      return result + "none";
+    return result + String.format("£%.2f", bestBid.toFloat());
+  }
+
   synchronized boolean bid(Bid bid) {
     if (isClosed
         || bestBid == null
-        && bid.getPrice().toFloat() < startingPrice.toFloat()
+        && bid.getPrice().toFloat() <= startingPrice.toFloat()
         || bestBid != null
         && bid.getPrice().toFloat() <= bestBid.getPrice().toFloat())
       return false;

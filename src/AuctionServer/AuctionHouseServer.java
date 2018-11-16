@@ -6,11 +6,12 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 
+/**
+ * Binds AuctionHouse to the rmi registry of localhost, and enables others
+ * to access the auction house server to buy and sell on
+ */
 public class AuctionHouseServer {
 
-  //Construct a new AuctionServer.AuctionHouseImpl object and bind it to the local rmiregistry
-  //N.b. it is possible to host multiple objects on a server by repeating the
-  //following method.
   public AuctionHouseServer() {
     try {
       AuctionHouse auctionHouse = new AuctionHouseImpl();

@@ -10,8 +10,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of the AuctionHouse interface
+ * @see AuctionInterfaces.AuctionHouse
+ */
 public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHouse {
 
+  /**
+   * Map of (K:auction id, V:auction object)
+   */
   private Map<Integer, AuctionImpl> auctions = new ConcurrentHashMap<>();
 
   public AuctionHouseImpl() throws RemoteException {
@@ -58,18 +65,16 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
   }
 
   @Override
-  public Price createPrice(Float price) throws RemoteException, IllegalArgumentException {
-    if (price < 0)
-      throw new IllegalArgumentException("negative values not accepted");
-    return new PriceImpl(price);
-  }
-
-  @Override
   public List<Auction> getLiveAuctions() throws RemoteException {
     return Collections.unmodifiableList(
         auctions.values()
         .stream()
         .filter(auction -> !auction.isClosed())
         .collect(Collectors.toList()));
+  }
+
+  @Override
+  public PriceFactory getPriceFactory() {
+    return new PriceFactoryImpl();
   }
 }

@@ -2,6 +2,10 @@ package AuctionInterfaces;
 
 import java.io.Serializable;
 
+/**
+ * A data structure to hold the price of a bid, and the details of the
+ * bidder making the bid.
+ */
 public interface Bid extends Serializable {
 
   Bidder getBidder();

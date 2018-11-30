@@ -48,7 +48,7 @@ public class AuctionImpl implements Auction, Serializable {
   synchronized boolean bid(Bid bid) {
     if (isClosed
         || bestBid == null
-        && bid.getPrice().toFloat() <= startingPrice.toFloat()
+        && bid.getPrice().toFloat() < startingPrice.toFloat()
         || bestBid != null
         && bid.getPrice().toFloat() <= bestBid.getPrice().toFloat())
       return false;

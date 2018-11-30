@@ -22,8 +22,7 @@ import java.util.stream.Collectors;
  */
 public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHouse {
 
-//  private final PrivateKey privateKey = (PrivateKey) loadSerializedFile("keys/privateKeyS");
-  private final PrivateKey privateKey = null;
+  private final PrivateKey privateKey = (PrivateKey) loadSerializedFile("keys/privateKeyS");
   private final Signature dsa;
 
   /**
@@ -40,12 +39,12 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
     super();
 
     Signature dsa = null;
-//    try {
-//      dsa = Signature.getInstance("SHA1withDSA");
-//    } catch (NoSuchAlgorithmException e) {
-//      e.printStackTrace();
-//      System.exit(1);
-//    }
+    try {
+      dsa = Signature.getInstance("SHA1withDSA");
+    } catch (NoSuchAlgorithmException e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
     this.dsa = dsa;
   }
 

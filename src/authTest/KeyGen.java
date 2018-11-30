@@ -49,11 +49,6 @@ public class KeyGen {
     System.out.println((1252 / 100f));
   }
 
-  /**
-   * Returns the collection of Actors for the scene.
-   *
-   * @return A collection of all Actor objects within the scene
-   */
   static Object loadSerializedFile(String fileName) {
     Object result = null;
     try (
@@ -68,9 +63,6 @@ public class KeyGen {
     return result;
   }
 
-  /**
-   * Saves the current collection of actors to a binary file.
-   */
   static void saveSerializedFile(String fileName, Object toSave) {
     try (
         FileOutputStream fileOut = new FileOutputStream(fileName + ".ser");

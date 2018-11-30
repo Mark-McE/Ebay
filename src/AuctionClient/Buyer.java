@@ -55,7 +55,7 @@ public class Buyer extends Client {
             bid();
             break;
           case "set details":
-            setDetails();
+//            setDetails();
             break;
           case "/?":
           case "help":
@@ -74,44 +74,44 @@ public class Buyer extends Client {
     }
   }
 
-  /**
-   * Takes user input for the bidder's name and email address from the command line
-   * Stores the inputted Name and Email within the bidder instance variable.
-   * Bidder details must be set before making a bid.
-   */
-  private void setDetails() throws RemoteException {
-    String name;
-    String email;
-
-    System.out.println("Input user details:\n");
-
-    while (true) {
-      System.out.print("First and last name: ");
-      name = sc.next();
-
-      // regular expression for a first and second name separated by a space
-      // e.g. John Smith, James O'Connor
-      // Does not accept more than 2 names e.g. john jacob jingleheimer schmidt
-      if (name.matches("[A-Za-z][a-zA-z'-]*[a-zA-z] [A-Za-z][a-zA-z'-]*[a-zA-z]"))
-        break;
-      else
-        System.out.println("Error: not a valid name. Example name: \"John Smith\"");
-    }
-
-    while (true) {
-      System.out.print("Email address: ");
-      email = sc.next();
-
-      // regular expression for custom email address with 2-4 character top level domain
-      if (email.matches("[a-zA-z][\\w\\.-]*@(?:[a-zA-z][\\w\\.-]+\\.)+[a-zA-z]{2,4}"))
-        break;
-      else
-        System.out.println("Error: not a valid email address");
-    }
-
-    bidder = server.createBidder(name, email);
-    System.out.println("Details successfully set");
-  }
+//  /**
+//   * Takes user input for the bidder's name and email address from the command line
+//   * Stores the inputted Name and Email within the bidder instance variable.
+//   * Bidder details must be set before making a bid.
+//   */
+//  private void setDetails() throws RemoteException {
+//    String name;
+//    String email;
+//
+//    System.out.println("Input user details:\n");
+//
+//    while (true) {
+//      System.out.print("First and last name: ");
+//      name = sc.next();
+//
+//      // regular expression for a first and second name separated by a space
+//      // e.g. John Smith, James O'Connor
+//      // Does not accept more than 2 names e.g. john jacob jingleheimer schmidt
+//      if (name.matches("[A-Za-z][a-zA-z'-]*[a-zA-z] [A-Za-z][a-zA-z'-]*[a-zA-z]"))
+//        break;
+//      else
+//        System.out.println("Error: not a valid name. Example name: \"John Smith\"");
+//    }
+//
+//    while (true) {
+//      System.out.print("Email address: ");
+//      email = sc.next();
+//
+//      // regular expression for custom email address with 2-4 character top level domain
+//      if (email.matches("[a-zA-z][\\w\\.-]*@(?:[a-zA-z][\\w\\.-]+\\.)+[a-zA-z]{2,4}"))
+//        break;
+//      else
+//        System.out.println("Error: not a valid email address");
+//    }
+//
+//    bidder = server.createBidder(name, email);
+//    System.out.println("Details successfully set");
+//  }
 
   /**
    * Requests all live auctions from the server and prints them in a human readable

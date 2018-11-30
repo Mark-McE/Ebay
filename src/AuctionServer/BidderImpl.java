@@ -5,12 +5,14 @@ import AuctionInterfaces.Bidder;
 import AuctionInterfaces.Price;
 
 import java.io.Serializable;
+import java.security.PublicKey;
 
 public class BidderImpl implements Bidder, Serializable {
   private final String name;
   private final String email;
+  private final PublicKey publicKey;
 
-  public BidderImpl(String name, String email) {
+  public BidderImpl(String name, String email, PublicKey publicKey) {
     if (!email.matches("[a-zA-z][\\w\\.-]*@(?:[a-zA-z][\\w\\.-]+\\.)+[a-zA-z]{2,4}"))
       throw new IllegalArgumentException("invalid email address format");
     if (!name.matches("[A-Za-z][a-zA-z'-]*[a-zA-z] [A-Za-z][a-zA-z'-]*[a-zA-z]"))
@@ -18,11 +20,17 @@ public class BidderImpl implements Bidder, Serializable {
 
     this.name = name;
     this.email = email;
+    this.publicKey = publicKey;
   }
 
   @Override
   public Bid createBid(Price price) {
     return new BidImpl(this, price);
+  }
+
+  @Override
+  public PublicKey getPublicKey() {
+    return publicKey;
   }
 
   @Override

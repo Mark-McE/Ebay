@@ -1,6 +1,7 @@
 package AuctionInterfaces;
 
 import java.io.Serializable;
+import java.security.PublicKey;
 
 /**
  * A data structure to store the details of a bidder.
@@ -17,6 +18,7 @@ public interface Bidder extends Serializable {
    */
   Bid createBid(Price price);
 
+  PublicKey getPublicKey();
   String getName();
   String getEmail();
 }

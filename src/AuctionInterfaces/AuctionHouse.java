@@ -1,6 +1,7 @@
 package AuctionInterfaces;
 
 import java.rmi.RemoteException;
+import java.security.PublicKey;
 import java.util.List;
 
 /**
@@ -22,12 +23,38 @@ public interface AuctionHouse extends java.rmi.Remote {
   }
 
   /**
+   * Sends the first message of the authentication protocol, and returns the
+   * second message (response).
+   * Authentication is required before further interaction with the Auction House
+   * may take place.
+   * @param sender
+   * @param challenge
+   * @return
+   * @throws IllegalStateException if bidder has already sent the first message
+   *    of the authentication protocol, and not responded to the reply.
+   */
+  Tuple<byte[], Integer> beginAuth(Bidder sender, int challenge)
+      throws RemoteException, IllegalStateException;
+
+  /**
+   * Sends the third and final message in the authentication protocol, and returns
+   * true if authentication was successful.
+   * @param sender
+   * @param response
+   * @return true if authentication was successful, false if response was incorrect.
+   * @throws IllegalStateException
+   */
+  boolean finalizeAuth(Bidder sender, byte[] response)
+      throws RemoteException, IllegalStateException;
+
+  /**
    * Creates a Bidder object with the specified name and email and returns it
    * @param name The bidder's name
    * @param email The bidder's email address
+   * @param publicKey The bidder's public key used for DSA
    * @return The Bidder object containing the passed name and email
    */
-  Bidder createBidder(String name, String email) throws RemoteException;
+  Bidder createBidder(String name, String email, PublicKey publicKey) throws RemoteException;
 
   /**
    * Creates a new auction and lists it on the server

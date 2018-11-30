@@ -5,11 +5,10 @@ import AuctionInterfaces.*;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.Signature;
+import java.security.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +29,11 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
   private PrivateKey privateKey = (PrivateKey) loadSerializedFile("../../keys/privateKeyS");
   private Signature dsa;
 
+  /**
+   * Map of (K:client object, V:null if authorized, challenge value otherwise)
+   */
+  private final Map<Bidder, Integer> authedClients = new ConcurrentHashMap<>();
+
   public AuctionHouseImpl() throws RemoteException {
     super();
 
@@ -41,6 +45,55 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
       System.exit(1);
     }
     this.dsa = dsa;
+  }
+
+  @Override
+  public synchronized Tuple<byte[], Integer> beginAuth(Bidder sender, int challenge)
+      throws RemoteException, IllegalStateException {
+    if (authedClients.containsKey(sender))
+      throw new IllegalStateException(authedClients.get(sender) == null
+          ? "Bidder already authorized"
+          : "Bidder must finalize current authentication session");
+
+    byte[] response = null;
+    try {
+      dsa.initSign(privateKey);
+      dsa.update(BigInteger.valueOf(challenge).toByteArray());
+      response = dsa.sign();
+    } catch (InvalidKeyException | SignatureException e) {
+      // should never execute
+      e.printStackTrace();
+      System.exit(1);
+    }
+
+    authedClients.put(sender, new SecureRandom().nextInt());
+    return new TupleImpl(response, authedClients.get(sender));
+  }
+
+  @Override
+  public synchronized boolean finalizeAuth(Bidder sender, byte[] response)
+      throws RemoteException, IllegalStateException {
+    if (!authedClients.containsKey(sender))
+      throw new IllegalStateException("No current authentication session with bidder to finalize");
+    if (authedClients.get(sender) == null)
+      throw new IllegalStateException("Bidder already authorized");
+
+    boolean res = false;
+    try {
+      dsa.initVerify(sender.getPublicKey());
+      dsa.update(BigInteger.valueOf(authedClients.get(sender)).toByteArray());
+      res = dsa.verify(response);
+    } catch (InvalidKeyException | SignatureException e) {
+      // should never execute
+      e.printStackTrace();
+      System.exit(1);
+    }
+
+    if (res)
+      authedClients.put(sender, null);
+    else
+      authedClients.remove(sender);
+    return res;
   }
 
   @Override
@@ -68,8 +121,8 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
   }
 
   @Override
-  public Bidder createBidder(String name, String email) throws RemoteException {
-    return new BidderImpl(name, email);
+  public Bidder createBidder(String name, String email, PublicKey publicKey) throws RemoteException {
+    return new BidderImpl(name, email, publicKey);
   }
 
   @Override

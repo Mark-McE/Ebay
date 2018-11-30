@@ -78,9 +78,9 @@ public abstract class Client {
       if (input.matches("\\d+(?:\\.\\d\\d?)?")) {
         Price price;
         try {
-          price = priceFactory.createPrice(Float.valueOf(input));
+          price = priceFactory.createPrice((int) (Float.valueOf(input)*100));
         } catch (IllegalArgumentException e) {
-          System.out.println("Error: price too large");
+          System.out.println("Error: not a valid price");
           continue;
         }
 

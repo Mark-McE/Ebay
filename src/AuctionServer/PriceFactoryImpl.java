@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 public class PriceFactoryImpl implements PriceFactory, Serializable {
   @Override
-  public Price createPrice(float value) {
-    return new PriceImpl(value);
+  public Price createPrice(int pennies) {
+    return new PriceImpl(pennies);
   }
 }

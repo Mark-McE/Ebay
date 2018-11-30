@@ -5,20 +5,19 @@ import AuctionInterfaces.Price;
 import java.io.Serializable;
 
 public class PriceImpl implements Price, Serializable {
-  private final float price;
+  private final int pennies;
 
   /**
-   * Rounds price to two decimal places
-   * @param price
+   * @param pennies
    */
-  public PriceImpl(float price) {
-    if (price >= Integer.MAX_VALUE/100)
-      throw new IllegalArgumentException("price cannot exceed Integer.MAX_VALUE/100");
-    this.price = Math.round(price * 100) / 100f;
+  public PriceImpl(int pennies) {
+    if (pennies < 0)
+      throw new IllegalArgumentException("price cannot be negative");
+    this.pennies = pennies;
   }
 
   @Override
   public float toFloat() {
-    return price;
+    return pennies / 100f;
   }
 }

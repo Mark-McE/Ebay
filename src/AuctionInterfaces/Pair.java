@@ -1,6 +1,6 @@
 package AuctionInterfaces;
 
-public interface Tuple<T, S> {
+public interface Pair<T, S> {
   T getLeft();
   S getRight();
 }

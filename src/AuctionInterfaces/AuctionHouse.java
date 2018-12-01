@@ -33,7 +33,7 @@ public interface AuctionHouse extends java.rmi.Remote {
    * @throws IllegalStateException if bidder has already sent the first message
    *    of the authentication protocol, and not responded to the reply.
    */
-  Tuple<byte[], Integer> beginAuth(Bidder sender, int challenge)
+  Pair<byte[], Integer> beginAuth(Bidder sender, int challenge)
       throws RemoteException, IllegalStateException;
 
   /**

@@ -1,13 +1,13 @@
 package AuctionServer;
 
-import AuctionInterfaces.Tuple;
+import AuctionInterfaces.Pair;
 
-public class TupleImpl<T, S> implements Tuple {
+public class PairImpl<T, S> implements Pair {
 
   private final T left;
   private final S right;
 
-  public TupleImpl(T left, S right) {
+  public PairImpl(T left, S right) {
     this.left = left;
     this.right = right;
   }

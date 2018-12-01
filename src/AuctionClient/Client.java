@@ -1,6 +1,7 @@
 package AuctionClient;
 
 import AuctionInterfaces.AuctionHouse;
+import AuctionInterfaces.Bidder;
 import AuctionInterfaces.Price;
 import AuctionInterfaces.PriceFactory;
 
@@ -27,6 +28,8 @@ public abstract class Client {
 
   protected AuctionHouse server;
   protected PriceFactory priceFactory;
+
+  protected Bidder bidde;
 
   /**
    * initializes connection to the auction house server

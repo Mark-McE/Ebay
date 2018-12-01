@@ -48,7 +48,7 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
   }
 
   @Override
-  public synchronized Tuple<byte[], Integer> beginAuth(Bidder sender, int challenge)
+  public synchronized Pair<byte[], Integer> beginAuth(Bidder sender, int challenge)
       throws RemoteException, IllegalStateException {
     if (authedClients.containsKey(sender))
       throw new IllegalStateException(authedClients.get(sender) == null
@@ -67,7 +67,7 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
     }
 
     authedClients.put(sender, new SecureRandom().nextInt());
-    return new TupleImpl(response, authedClients.get(sender));
+    return new PairImpl(response, authedClients.get(sender));
   }
 
   @Override

@@ -29,7 +29,7 @@ public abstract class Client {
   protected AuctionHouse server;
   protected PriceFactory priceFactory;
 
-  protected Bidder bidde;
+  protected Bidder bidder;
 
   /**
    * initializes connection to the auction house server

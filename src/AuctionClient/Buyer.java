@@ -29,8 +29,6 @@ public class Buyer extends Client {
       + "Bid:\t\tPlace a bid on a live auction by quoting it's auction id.\n"
       + "Help:\t\tPrints this help message.";
 
-  private Bidder bidder = null;
-
   public Buyer() {
     super();
   }

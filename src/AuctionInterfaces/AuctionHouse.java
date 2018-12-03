@@ -55,7 +55,7 @@ public interface AuctionHouse extends java.rmi.Remote {
    * @return The Bidder object representing this bidder's account, or null if
    *    the user is not found
    */
-  Bidder getUser(String email) throws RemoteException;
+  Bidder getBidder(String email) throws RemoteException;
 
   /**
    * Creates a Bidder object with the specified name and email and returns it

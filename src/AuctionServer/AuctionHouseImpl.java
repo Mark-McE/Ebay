@@ -11,8 +11,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.security.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -23,9 +23,9 @@ import java.util.stream.Collectors;
 public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHouse {
 
   /** Map of all known auctions (K:auction id, V:auction object) */
-  private Map<Integer, AuctionImpl> auctions = new ConcurrentHashMap<>();
+  private ConcurrentMap<Integer, AuctionImpl> auctions = new ConcurrentHashMap<>();
   /** Map of clients currently being authenticated (K:client object, V:challenge value) */
-  private final Map<Bidder, Integer> authChallenges = new ConcurrentHashMap<>();
+  private final ConcurrentMap<Bidder, Integer> authChallenges = new ConcurrentHashMap<>();
   /** List of all known clients */
   private final List<Bidder> clients = new CopyOnWriteArrayList<>();
 
@@ -46,7 +46,7 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
   }
 
   @Override
-  public Bidder getUser(String email) throws RemoteException {
+  public Bidder getBidder(String email) throws RemoteException {
     return clients.stream()
         .filter(b -> b.getEmail().equals(email))
         .findFirst()
@@ -97,6 +97,15 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
   }
 
   @Override
+  public Bidder createBidder(String name, String email, PublicKey publicKey) throws RemoteException {
+    if (clients.stream().anyMatch(b -> b.getEmail().equals(email)))
+      return null;
+    Bidder bidder = new BidderImpl(name, email, publicKey);
+    clients.add(bidder);
+    return bidder;
+  }
+
+  @Override
   public ServerResponse bid(int id, Bid bid) throws RemoteException {
     final boolean[] bidOK = new boolean[1];
 
@@ -123,15 +132,6 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
     if (auction.isClosed())
       return ServerResponse.OK;
     return ServerResponse.INSUFFICIENT_RIGHTS;
-  }
-
-  @Override
-  public Bidder createBidder(String name, String email, PublicKey publicKey) throws RemoteException {
-    if (clients.stream().anyMatch(b -> b.getEmail().equals(email)))
-      return null;
-    Bidder bidder = new BidderImpl(name, email, publicKey);
-    clients.add(bidder);
-    return bidder;
   }
 
   @Override

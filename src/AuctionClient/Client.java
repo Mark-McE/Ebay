@@ -181,7 +181,7 @@ public abstract class Client {
         System.out.println("Error: Invalid email address");
         continue;
       }
-      bidder = server.getUser(input);
+      bidder = server.getBidder(input);
       if (bidder == null) {
         System.out.println("Error: user " + input + " not found");
         continue;

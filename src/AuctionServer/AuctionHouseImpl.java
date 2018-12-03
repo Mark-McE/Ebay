@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -21,18 +22,15 @@ import java.util.stream.Collectors;
  */
 public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHouse {
 
-  /**
-   * Map of (K:auction id, V:auction object)
-   */
+  /** Map of all known auctions (K:auction id, V:auction object) */
   private Map<Integer, AuctionImpl> auctions = new ConcurrentHashMap<>();
+  /** Map of clients currently being authenticated (K:client object, V:challenge value) */
+  private final Map<Bidder, Integer> authChallenges = new ConcurrentHashMap<>();
+  /** List of all known clients */
+  private final List<Bidder> clients = new CopyOnWriteArrayList<>();
 
-  private PrivateKey privateKey = (PrivateKey) loadSerializedFile("../../keys/privateKeyS");
+  private PrivateKey privateKey = (PrivateKey) loadSerializedFile("keys/privateKeyS.ser");
   private Signature dsa;
-
-  /**
-   * Map of (K:client object, V:null if authorized, challenge value otherwise)
-   */
-  private final Map<Bidder, Integer> authedClients = new ConcurrentHashMap<>();
 
   public AuctionHouseImpl() throws RemoteException {
     super();
@@ -48,12 +46,18 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
   }
 
   @Override
+  public Bidder getUser(String email) throws RemoteException {
+    return clients.stream()
+        .filter(b -> b.getEmail().equals(email))
+        .findFirst()
+        .orElse(null);
+  }
+
+  @Override
   public synchronized Pair<byte[], Integer> beginAuth(Bidder sender, int challenge)
       throws RemoteException, IllegalStateException {
-    if (authedClients.containsKey(sender))
-      throw new IllegalStateException(authedClients.get(sender) == null
-          ? "Bidder already authorized"
-          : "Bidder must finalize current authentication session");
+    if (authChallenges.containsKey(sender))
+        throw new IllegalStateException("current authentication session not finalized");
 
     byte[] response = null;
     try {
@@ -66,22 +70,21 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
       System.exit(1);
     }
 
-    authedClients.put(sender, new SecureRandom().nextInt());
-    return new PairImpl(response, authedClients.get(sender));
+    int myChallenge = new SecureRandom().nextInt();
+    authChallenges.put(sender, myChallenge);
+    return new PairImpl<byte[], Integer>(response, myChallenge);
   }
 
   @Override
   public synchronized boolean finalizeAuth(Bidder sender, byte[] response)
       throws RemoteException, IllegalStateException {
-    if (!authedClients.containsKey(sender))
-      throw new IllegalStateException("No current authentication session with bidder to finalize");
-    if (authedClients.get(sender) == null)
-      throw new IllegalStateException("Bidder already authorized");
+    if (!authChallenges.containsKey(sender))
+      throw new IllegalStateException("No current authentication session to finalize.");
 
     boolean res = false;
     try {
       dsa.initVerify(sender.getPublicKey());
-      dsa.update(BigInteger.valueOf(authedClients.get(sender)).toByteArray());
+      dsa.update(BigInteger.valueOf(authChallenges.get(sender)).toByteArray());
       res = dsa.verify(response);
     } catch (InvalidKeyException | SignatureException e) {
       // should never execute
@@ -89,15 +92,12 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
       System.exit(1);
     }
 
-    if (res)
-      authedClients.put(sender, null);
-    else
-      authedClients.remove(sender);
+    authChallenges.remove(sender);
     return res;
   }
 
   @Override
-  public BidResponse bid(int id, Bid bid) throws RemoteException {
+  public ServerResponse bid(int id, Bid bid) throws RemoteException {
     final boolean[] bidOK = new boolean[1];
 
     Auction auct = auctions.computeIfPresent(id, (auctionId, auction) -> {
@@ -106,33 +106,47 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
     });
 
     if (auct == null)
-      return BidResponse.AUCTION_NOT_FOUND;
+      return ServerResponse.AUCTION_NOT_FOUND;
     if (bidOK[0])
-      return BidResponse.OK;
+      return ServerResponse.OK;
     else if (auct.isClosed())
-      return BidResponse.AUCTION_CLOSED;
+      return ServerResponse.AUCTION_CLOSED;
     else
-      return BidResponse.TOO_LOW;
+      return ServerResponse.TOO_LOW;
   }
 
   @Override
-  public Auction closeAuction(int id) throws RemoteException {
-    return auctions.computeIfPresent(id, (auctionId, auction) -> auction.close());
+  public ServerResponse closeAuction(Bidder owner, int id) throws RemoteException {
+    Auction auction = auctions.computeIfPresent(id, (auctionId, auct) -> auct.close(owner));
+    if (auction == null)
+      return ServerResponse.AUCTION_NOT_FOUND;
+    if (auction.isClosed())
+      return ServerResponse.OK;
+    return ServerResponse.INSUFFICIENT_RIGHTS;
   }
 
   @Override
   public Bidder createBidder(String name, String email, PublicKey publicKey) throws RemoteException {
-    return new BidderImpl(name, email, publicKey);
+    if (clients.stream().anyMatch(b -> b.getEmail().equals(email)))
+      return null;
+    Bidder bidder = new BidderImpl(name, email, publicKey);
+    clients.add(bidder);
+    return bidder;
   }
 
   @Override
-  public int createAuction(String item, String description, Price startingPrice, Price reservePrice)
+  public int createAuction(Bidder owner, String item, String description, Price startingPrice, Price reservePrice)
       throws RemoteException {
 
-    AuctionImpl auction = new AuctionImpl(item, description, startingPrice, reservePrice);
+    AuctionImpl auction = new AuctionImpl(owner, item, description, startingPrice, reservePrice);
     auctions.put(auction.getId(), auction);
 
     return auction.getId();
+  }
+
+  @Override
+  public Auction getAuction(int id) throws RemoteException {
+    return auctions.get(id);
   }
 
   @Override
@@ -157,7 +171,7 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
   private Object loadSerializedFile(String fileName) {
     Object result = null;
     try (
-        FileInputStream fileIn = new FileInputStream(fileName + ".ser");
+        FileInputStream fileIn = new FileInputStream(fileName);
         ObjectInputStream objIn = new ObjectInputStream(fileIn)) {
       result = objIn.readObject();
     } catch (ClassNotFoundException | IOException e) {

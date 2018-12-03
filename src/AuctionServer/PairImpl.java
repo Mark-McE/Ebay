@@ -2,7 +2,13 @@ package AuctionServer;
 
 import AuctionInterfaces.Pair;
 
-public class PairImpl<T, S> implements Pair {
+import java.io.Serializable;
+
+/**
+ * Implementation of the Pair interface
+ * @see AuctionInterfaces.Pair
+ */
+public class PairImpl<T, S> implements Pair, Serializable {
 
   private final T left;
   private final S right;

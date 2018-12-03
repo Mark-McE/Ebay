@@ -6,6 +6,10 @@ import AuctionInterfaces.Price;
 
 import java.io.Serializable;
 
+/**
+ * Implementation of the Bid interface
+ * @see AuctionInterfaces.Bid
+ */
 public class BidImpl implements Bid, Serializable{
 
   private final Bidder bidder;

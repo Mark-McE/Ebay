@@ -1,1 +1,1 @@
-@START "seller" CMD /c "cd out/Ebay && java AuctionClient.Seller"
+@START "seller" CMD /k "java -cp out\Ebay;. AuctionClient.Seller"

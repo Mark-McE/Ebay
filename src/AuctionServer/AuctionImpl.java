@@ -2,14 +2,20 @@ package AuctionServer;
 
 import AuctionInterfaces.Auction;
 import AuctionInterfaces.Bid;
+import AuctionInterfaces.Bidder;
 import AuctionInterfaces.Price;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Implementation of the Auction interface
+ * @see AuctionInterfaces.Auction
+ */
 public class AuctionImpl implements Auction, Serializable {
   private static final AtomicInteger idCounter = new AtomicInteger(0);
 
+  private final Bidder owner;
   private final int id;
   private final String item;
   private final String description;
@@ -19,8 +25,9 @@ public class AuctionImpl implements Auction, Serializable {
   private boolean isClosed;
   private Bid bestBid;
 
-  public AuctionImpl(String item, String description, Price startingPrice, Price reservePrice) {
+  public AuctionImpl(Bidder owner, String item, String description, Price startingPrice, Price reservePrice) {
 
+    this.owner = owner;
     this.id = idCounter.getAndIncrement();
     this.item = item;
     this.description = description;
@@ -48,7 +55,7 @@ public class AuctionImpl implements Auction, Serializable {
   synchronized boolean bid(Bid bid) {
     if (isClosed
         || bestBid == null
-        && bid.getPrice().toFloat() < startingPrice.toFloat()
+        && bid.getPrice().toFloat() <= startingPrice.toFloat()
         || bestBid != null
         && bid.getPrice().toFloat() <= bestBid.getPrice().toFloat())
       return false;
@@ -57,8 +64,9 @@ public class AuctionImpl implements Auction, Serializable {
     return true;
   }
 
-  synchronized AuctionImpl close() {
-    isClosed = true;
+  synchronized AuctionImpl close(Bidder owner) {
+    if (this.owner.equals(owner))
+      isClosed = true;
     return this;
   }
 
@@ -71,7 +79,7 @@ public class AuctionImpl implements Auction, Serializable {
   public Bid getWinningBid() {
     if (isClosed
         && bestBid != null
-        && bestBid.getPrice().toFloat() > reservePrice.toFloat())
+        && bestBid.getPrice().toFloat() >= reservePrice.toFloat())
       return bestBid;
     return null;
   }

@@ -1,4 +1,3 @@
 #!/bin/sh
 
-cd out/Ebay
-gnome-terminal -e "java AuctionClient.Seller"
+gnome-terminal -e "java -cp out/Ebay:. AuctionClient.Seller"

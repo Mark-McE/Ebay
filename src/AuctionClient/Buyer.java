@@ -1,8 +1,7 @@
 package AuctionClient;
 
 import AuctionInterfaces.Auction;
-import AuctionInterfaces.AuctionHouse.BidResponse;
-import AuctionInterfaces.Bidder;
+import AuctionInterfaces.AuctionHouse.ServerResponse;
 import AuctionInterfaces.Price;
 
 import java.rmi.RemoteException;
@@ -128,7 +127,7 @@ public class Buyer extends Client {
       return;
     }
 
-    BidResponse response = server.bid(id, bidder.createBid(price));
+    ServerResponse response = server.bid(id, bidder.createBid(price));
 
     switch (response) {
       case OK:

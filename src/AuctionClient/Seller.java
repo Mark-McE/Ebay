@@ -1,6 +1,7 @@
 package AuctionClient;
 
 import AuctionInterfaces.Auction;
+import AuctionInterfaces.AuctionHouse.ServerResponse;
 import AuctionInterfaces.Bid;
 import AuctionInterfaces.Price;
 
@@ -128,7 +129,7 @@ public class Seller extends Client {
   public void createAuction(String item, String description, Price startingPrice, Price reservePrice)
       throws RemoteException {
 
-    int id = server.createAuction(item, description, startingPrice, reservePrice);
+    int id = server.createAuction(bidder, item, description, startingPrice, reservePrice);
     System.out.println("\nAuction created with id: " + id);
   }
 
@@ -164,23 +165,31 @@ public class Seller extends Client {
    * @param id The id of the auction to close
    */
   public void closeAuction(int id) throws RemoteException {
-    Auction closedAuction = server.closeAuction(id);
+    ServerResponse response = server.closeAuction(bidder, id);
 
-    if (closedAuction == null) {
-      System.out.println("Error: Auction id not found (may already be closed)");
-      return;
+    switch (response) {
+      case OK:
+        System.out.println("Auction " + id + " successfully closed");
+        break;
+      case AUCTION_NOT_FOUND:
+        System.out.println("Error: Auction id not found");
+        return;
+      case INSUFFICIENT_RIGHTS:
+        System.out.println("Error: Insufficient rights to close auction");
+        return;
     }
-    System.out.println("Auction " + id + " successfully closed");
+
+    Auction closedAuction = server.getAuction(id);
 
     Bid winningBid = closedAuction.getWinningBid();
     if (winningBid == null) {
       System.out.printf(
-          "Reserve price £%.2f not exceeded, item not sold.\n",
+          "Reserve price £%.2f not met, item not sold.\n",
           closedAuction.getReservePrice().toFloat());
     } else {
       System.out.printf(
           "Winning bid: £%.2f\n" +
-          "Winning bidder: %s, (%s)\n",
+          "Winning bidder: %s (%s)\n",
           winningBid.toFloat(),
           winningBid.getBidderName(),
           winningBid.getBidderEmail());

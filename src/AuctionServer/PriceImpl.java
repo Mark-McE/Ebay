@@ -4,6 +4,10 @@ import AuctionInterfaces.Price;
 
 import java.io.Serializable;
 
+/**
+ * Implementation of the Price interface
+ * @see AuctionInterfaces.Price
+ */
 public class PriceImpl implements Price, Serializable {
   private final int pennies;
 

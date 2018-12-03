@@ -4,11 +4,12 @@ cd out/Ebay
 
 rmiregistry &
 
+cd ../..
 sleep 0.5
 
-java AuctionServer.AuctionHouseServer &
+java -cp out/Ebay:. AuctionServer.AuctionHouseServer &
 
 sleep 0.5
 
-gnome-terminal -e "java AuctionClient.Buyer" &
-gnome-terminal -e "java AuctionClient.Seller"
+gnome-terminal -e "java -cp out/Ebay:. AuctionClient.Buyer" &
+gnome-terminal -e "java -cp out/Ebay:. AuctionClient.Seller"

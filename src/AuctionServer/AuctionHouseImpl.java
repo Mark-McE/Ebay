@@ -29,8 +29,8 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
   /** List of all known clients */
   private final List<Bidder> clients = new CopyOnWriteArrayList<>();
 
-  private PrivateKey privateKey = (PrivateKey) loadSerializedFile("keys/privateKeyS.ser");
-  private Signature dsa;
+  private final PrivateKey privateKey = (PrivateKey) loadSerializedFile("keys/privateKeyS.ser");
+  private final Signature dsa;
 
   public AuctionHouseImpl() throws RemoteException {
     super();

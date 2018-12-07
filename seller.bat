@@ -1,1 +1,1 @@
-@START "seller" CMD /k "java -cp out\Ebay;. AuctionClient.Seller"
+@START "seller" CMD /k "java -cp out\Ebay;lib\jgroups-3.6.14.Final.jar;. AuctionClient.Seller"

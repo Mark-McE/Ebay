@@ -17,7 +17,7 @@ import java.util.Scanner;
  * Handles:
  *   initial connection to the Auction house server
  *   reconnecting to the auction house server at any time
- *   taking user input for prices
+ *   authentication with auction house server
  */
 public abstract class Client {
 
@@ -27,22 +27,22 @@ public abstract class Client {
   protected final Scanner sc = new Scanner(System.in);
 
   protected AuctionHouse server;
-  protected PriceFactory priceFactory;
+  private PriceFactory priceFactory;
 
   protected Bidder bidder;
-  protected PrivateKey privateKey;
-  protected PublicKey publicKeyServer = (PublicKey) loadSerializedFile("keys/publicKeyS.ser");
+  private PrivateKey privateKey;
+  private PublicKey publicKeyServer = (PublicKey) loadSerializedFile("keys/publicKeyS.ser");
 
   /**
-   * initializes connection to the auction house server
+   * initializes connection to the auction house server and authenticates
    */
   public Client() {
-    // Create the reference to the remote object through the rmiregistry
+    // Create the reference to the remote server object through the rmiregistry
     try {
       server = (AuctionHouse) Naming.lookup("rmi://localhost/AuctionHouse");
       priceFactory = server.getPriceFactory();
     } catch (NotBoundException | MalformedURLException | RemoteException e) {
-      System.out.println("Error: unable to communicate with Auction house server");
+      System.out.println(RMI_REMOTE_EXCEPTION_STIRNG);
       System.exit(1);
     }
 

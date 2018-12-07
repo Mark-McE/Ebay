@@ -1,0 +1,1 @@
+@START "cluster member" /MIN CMD /k "java -cp out\Ebay;lib\jgroups-3.6.14.Final.jar;. AuctionServer.ClusterMember"

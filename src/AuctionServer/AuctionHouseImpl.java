@@ -1,6 +1,7 @@
 package AuctionServer;
 
 import AuctionInterfaces.*;
+import org.jgroups.JChannel;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -9,12 +10,12 @@ import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.*;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
+
+import static AuctionServer.ClusterMember.Service.*;
 
 /**
  * Implementation of the AuctionHouse interface
@@ -22,27 +23,35 @@ import java.util.stream.Collectors;
  */
 public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHouse {
 
-  /** Map of all known auctions (K:auction id, V:auction object) */
-  private ConcurrentMap<Integer, AuctionImpl> auctions = new ConcurrentHashMap<>();
+  private static final int TIMEOUT = 2000;
+
   /** Map of clients currently being authenticated (K:client object, V:challenge value) */
   private final ConcurrentMap<Bidder, Integer> authChallenges = new ConcurrentHashMap<>();
   /** List of all known clients */
   private final List<Bidder> clients = new CopyOnWriteArrayList<>();
 
+  private ClusterRequester clusterRequester;
   private final PrivateKey privateKey = (PrivateKey) loadSerializedFile("keys/privateKeyS.ser");
-  private final Signature dsa;
+  private Signature dsa;
 
   public AuctionHouseImpl() throws RemoteException {
     super();
 
-    Signature dsa = null;
     try {
       dsa = Signature.getInstance("SHA1withDSA");
     } catch (NoSuchAlgorithmException e) {
+      // would only execute if SHA1withDSA is removed as a Signature algorithm
       e.printStackTrace();
       System.exit(1);
     }
-    this.dsa = dsa;
+
+    try {
+      clusterRequester = new ClusterRequester(new JChannel("props.xml"));
+    } catch (Exception e) {
+      System.out.println("Error: Unable to connect to cluster");
+      e.printStackTrace();
+      System.exit(1);
+    }
   }
 
   @Override
@@ -107,55 +116,58 @@ public class AuctionHouseImpl extends UnicastRemoteObject implements AuctionHous
 
   @Override
   public ServerResponse bid(int id, Bid bid) throws RemoteException {
-    final boolean[] bidOK = new boolean[1];
-
-    Auction auct = auctions.computeIfPresent(id, (auctionId, auction) -> {
-      bidOK[0] = auction.bid(bid);
-      return auction;
-    });
-
-    if (auct == null)
-      return ServerResponse.AUCTION_NOT_FOUND;
-    if (bidOK[0])
-      return ServerResponse.OK;
-    else if (auct.isClosed())
-      return ServerResponse.AUCTION_CLOSED;
-    else
-      return ServerResponse.TOO_LOW;
+    try {
+      return (ServerResponse) clusterRequester.requestService(BID, TIMEOUT, id, bid);
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+    return null;
   }
 
   @Override
   public ServerResponse closeAuction(Bidder owner, int id) throws RemoteException {
-    Auction auction = auctions.computeIfPresent(id, (auctionId, auct) -> auct.close(owner));
-    if (auction == null)
-      return ServerResponse.AUCTION_NOT_FOUND;
-    if (auction.isClosed())
-      return ServerResponse.OK;
-    return ServerResponse.INSUFFICIENT_RIGHTS;
+    try {
+      return (ServerResponse) clusterRequester.requestService(CLOSE_AUCTION, TIMEOUT, owner, id);
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+    return null;
   }
 
   @Override
   public int createAuction(Bidder owner, String item, String description, Price startingPrice, Price reservePrice)
       throws RemoteException {
-
-    AuctionImpl auction = new AuctionImpl(owner, item, description, startingPrice, reservePrice);
-    auctions.put(auction.getId(), auction);
-
-    return auction.getId();
+    try {
+      return (int) clusterRequester.requestService(CREATE_AUCTION, TIMEOUT, owner, item, description, startingPrice, reservePrice);
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+    return -1;
   }
 
   @Override
   public Auction getAuction(int id) throws RemoteException {
-    return auctions.get(id);
+    try {
+      return (Auction) clusterRequester.requestService(GET_AUCTION, TIMEOUT, id);
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+    return null;
   }
 
   @Override
   public List<Auction> getLiveAuctions() throws RemoteException {
-    return Collections.unmodifiableList(
-        auctions.values()
-        .stream()
-        .filter(auction -> !auction.isClosed())
-        .collect(Collectors.toList()));
+    try {
+      return (List<Auction>) clusterRequester.requestService(GET_LIVE_AUCTIONS, TIMEOUT);
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+    return null;
   }
 
   @Override

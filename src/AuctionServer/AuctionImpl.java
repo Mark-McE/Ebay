@@ -6,6 +6,7 @@ import AuctionInterfaces.Bidder;
 import AuctionInterfaces.Price;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -13,7 +14,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @see AuctionInterfaces.Auction
  */
 public class AuctionImpl implements Auction, Serializable {
-  private static final AtomicInteger idCounter = new AtomicInteger(0);
 
   private final Bidder owner;
   private final int id;
@@ -25,10 +25,10 @@ public class AuctionImpl implements Auction, Serializable {
   private boolean isClosed;
   private Bid bestBid;
 
-  public AuctionImpl(Bidder owner, String item, String description, Price startingPrice, Price reservePrice) {
+  public AuctionImpl(Bidder owner, int id, String item, String description, Price startingPrice, Price reservePrice) {
 
     this.owner = owner;
-    this.id = idCounter.getAndIncrement();
+    this.id = id;
     this.item = item;
     this.description = description;
     this.startingPrice = startingPrice;
@@ -107,5 +107,24 @@ public class AuctionImpl implements Auction, Serializable {
   @Override
   public Price getReservePrice() {
     return reservePrice;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(owner, id);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null)
+      return false;
+    if (obj == this)
+      return true;
+    if (!(obj instanceof AuctionImpl))
+      return false;
+
+    AuctionImpl other = (AuctionImpl) obj;
+    return other.id == id
+        && other.owner.equals(owner);
   }
 }
